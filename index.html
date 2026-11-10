@@ -11,7 +11,7 @@
     <div class="max-w-2xl w-full bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700">
         <div class="text-center mb-6">
             <h2 class="text-3xl font-bold text-green-500 mb-2">🛡️ Image EXIF Stripper</h2>
-            <p class="text-sm text-gray-400">ছবির ভেতরের লোকেশন এবং ডিভাইসের হিডেন মেটাডাটা এক ক্লিকে মুছে ফেলুন।</p>
+            <p class="text-sm text-gray-400">ছবির ভেতরের লোকেশন এবং ডিভাইসের হিডেন মেটাডাটা মুছে ফেলুন।</p>
         </div>
 
         <!-- Upload Area -->
@@ -28,16 +28,10 @@
 
         <!-- Preview Area -->
         <div id="previewContainer" class="hidden mb-6 flex flex-col items-center bg-gray-900 p-4 rounded-xl border border-gray-700">
-            <p id="previewTitle" class="text-sm font-semibold text-gray-400 mb-3">অরিজিনাল ছবি:</p>
-            
-            <!-- Image tag used for both preview and final output so iOS users can long-press to save -->
             <img id="imagePreview" class="max-w-full h-64 object-contain rounded-lg border-2 border-transparent transition-all shadow-md" src="" alt="Preview">
-            
             <p id="fileInfo" class="text-xs text-gray-500 mt-3"></p>
-            <p id="iosInstruction" class="text-xs text-yellow-500 mt-2 font-semibold hidden animate-pulse">💡 আইফোন ইউজাররা ছবির ওপর চেপে ধরে (Long Press) 'Save Image' করুন।</p>
         </div>
 
-        <!-- Canvas for stripping (Hidden) -->
         <canvas id="canvas" class="hidden"></canvas>
 
         <!-- Actions -->
@@ -46,33 +40,27 @@
                 🧹 Remove Metadata
             </button>
             <button id="downloadBtn" onclick="downloadImage()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hidden">
-                ⬇️ Download (For PC/Android)
+                ⬇️ Download / Save Image
             </button>
         </div>
         
-        <!-- Status Message -->
         <p id="statusMsg" class="text-center text-sm font-semibold mt-4 hidden"></p>
     </div>
 
     <script>
         let originalImage = new Image();
-        let cleanedDataUrl = "";
-        let originalFileName = "";
+        let originalFileName = "image.jpg";
+        let cleanedBlob = null; // Storing the file as a Blob instead of text
 
         const imageInput = document.getElementById('imageInput');
         const previewContainer = document.getElementById('previewContainer');
         const imagePreview = document.getElementById('imagePreview');
-        const previewTitle = document.getElementById('previewTitle');
         const fileInfo = document.getElementById('fileInfo');
         const processBtn = document.getElementById('processBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const statusMsg = document.getElementById('statusMsg');
-        const iosInstruction = document.getElementById('iosInstruction');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-
-        // Check if user is on iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
         function handleFile(event) {
             const file = event.target.files[0];
@@ -84,19 +72,13 @@
             reader.onload = function(e) {
                 originalImage.src = e.target.result;
                 imagePreview.src = e.target.result;
-                
-                // Reset UI for new upload
                 imagePreview.classList.remove('border-green-500');
-                imagePreview.classList.add('border-transparent');
-                previewTitle.innerText = "অরিজিনাল ছবি:";
-                previewTitle.className = "text-sm font-semibold text-gray-400 mb-3";
                 
                 previewContainer.classList.remove('hidden');
                 processBtn.classList.remove('hidden');
                 processBtn.disabled = false;
                 downloadBtn.classList.add('hidden');
                 statusMsg.classList.add('hidden');
-                iosInstruction.classList.add('hidden');
                 
                 const sizeKB = (file.size / 1024).toFixed(2);
                 fileInfo.innerText = `File: ${originalFileName} (${sizeKB} KB)`;
@@ -115,36 +97,27 @@
                 setTimeout(() => {
                     canvas.width = originalImage.width;
                     canvas.height = originalImage.height;
-
                     ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
 
-                    // Convert to image data (Strip EXIF)
-                    cleanedDataUrl = canvas.toDataURL('image/jpeg', 1.0);
-                    
-                    // Display the cleaned image back in the img tag for iOS long-press saving
-                    imagePreview.src = cleanedDataUrl;
-                    imagePreview.classList.remove('border-transparent');
-                    imagePreview.classList.add('border-green-500');
-                    
-                    previewTitle.innerText = "✅ ক্লিন হওয়া ছবি (মেটাডাটা মুক্ত):";
-                    previewTitle.className = "text-sm font-bold text-green-400 mb-3";
+                    // Convert canvas to Blob (Real file format, fixes iOS URL length limit)
+                    canvas.toBlob(function(blob) {
+                        cleanedBlob = blob;
+                        
+                        // Update preview with object URL
+                        const objectUrl = URL.createObjectURL(blob);
+                        imagePreview.src = objectUrl;
+                        imagePreview.classList.add('border-green-500');
 
-                    statusMsg.innerText = "মেটাডাটা সফলভাবে মুছে ফেলা হয়েছে!";
-                    statusMsg.className = "text-center text-sm font-bold mt-4 text-green-500";
-                    statusMsg.classList.remove('hidden');
-                    
-                    processBtn.classList.add('hidden');
-                    
-                    // Show download button for non-iOS, instruction for iOS
-                    if (isIOS) {
-                        iosInstruction.classList.remove('hidden');
-                    } else {
+                        statusMsg.innerText = "✅ মেটাডাটা সফলভাবে মুছে ফেলা হয়েছে!";
+                        statusMsg.className = "text-center text-sm font-bold mt-4 text-green-500";
+                        statusMsg.classList.remove('hidden');
+                        
+                        processBtn.classList.add('hidden');
                         downloadBtn.classList.remove('hidden');
-                    }
-                    
-                    processBtn.innerText = "🧹 Remove Metadata";
+                        processBtn.innerText = "🧹 Remove Metadata";
+                    }, 'image/jpeg', 1.0);
 
-                }, 100); // Small delay to let UI update to "Processing..."
+                }, 100);
 
             } catch (error) {
                 statusMsg.innerText = "❌ মেটাডাটা মুছতে সমস্যা হয়েছে!";
@@ -155,15 +128,36 @@
             }
         }
 
-        function downloadImage() {
-            if (!cleanedDataUrl) return;
+        async function downloadImage() {
+            if (!cleanedBlob) return;
 
+            const newFileName = "Cleaned_" + originalFileName;
+            const file = new File([cleanedBlob], newFileName, { type: "image/jpeg" });
+
+            // Method 1: Try Web Share API (Works perfectly on iPhone)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Cleaned Image'
+                    });
+                    return; // Stop here if share sheet opened successfully
+                } catch (err) {
+                    console.log("Share sheet cancelled or failed.");
+                }
+            }
+
+            // Method 2: Fallback direct download (For PC and Android)
+            const objectUrl = URL.createObjectURL(cleanedBlob);
             const link = document.createElement('a');
-            link.download = "Cleaned_" + originalFileName;
-            link.href = cleanedDataUrl;
+            link.href = objectUrl;
+            link.download = newFileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // Clean up memory
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
         }
     </script>
 </body>
