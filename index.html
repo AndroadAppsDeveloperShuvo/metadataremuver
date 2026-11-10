@@ -1,346 +1,137 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EXIF Stripper Pro - By Shuvo</title>
-  
-  <!-- Toastify -->
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
-
-  <style>
-    /* Professional Theme Variables */
-    :root {
-      --bg-color: #e2e8f0;
-      --card-bg: #ffffff;
-      --text-main: #000000;
-      --text-muted: #475569;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --border-color: #cbd5e1;
-      --input-bg: #f8fafc;
-      --success: #10b981;
-      --danger: #ef4444;
-      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-    }
-
-    [data-theme="dark"] {
-      color-scheme: dark;
-      --bg-color: #020617;
-      --card-bg: #0f172a;
-      --text-main: #ffffff;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #60a5fa;
-      --border-color: #334155;
-      --input-bg: #1e293b;
-      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-    }
-
-    * {
-      box-sizing: border-box; margin: 0; padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      transition: background-color 0.3s, color 0.3s, border-color 0.2s;
-    }
-
-    body {
-      background: var(--bg-color); color: var(--text-main);
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100vh; padding: 20px;
-    }
-
-    .generator-card {
-      background: var(--card-bg); width: 100%; max-width: 480px;
-      padding: 30px; border-radius: 20px; box-shadow: var(--shadow-lg);
-      position: relative;
-    }
-
-    /* Header & Settings */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .header h1 { font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
-    .header p { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-
-    .settings-btn { background: transparent; border: none; color: var(--text-main); cursor: pointer; padding: 8px; border-radius: 50%; }
-    .settings-btn:hover { background: var(--border-color); }
-    .settings-btn svg { width: 22px; height: 22px; fill: currentColor; }
-
-    .settings-dropdown {
-      position: absolute; top: 70px; right: 30px; background: var(--card-bg);
-      border: 2px solid var(--border-color); box-shadow: var(--shadow-lg);
-      border-radius: 12px; padding: 15px; width: 180px; display: none; z-index: 10;
-    }
-    .settings-dropdown.active { display: block; animation: popIn 0.2s ease-out; }
-    .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; }
-
-    /* Toggle Switch */
-    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); border-radius: 34px; transition: .4s; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .4s; }
-    input:checked + .slider { background-color: var(--primary); }
-    input:checked + .slider:before { transform: translateX(20px); }
-
-    /* Drag & Drop Zone */
-    .drop-zone {
-      border: 2px dashed var(--primary); border-radius: 16px; padding: 30px 20px;
-      text-align: center; background: var(--input-bg); cursor: pointer;
-      transition: all 0.3s; margin-bottom: 20px;
-    }
-    .drop-zone:hover, .drop-zone.dragover { background: rgba(37, 99, 235, 0.1); border-color: var(--primary-hover); }
-    .drop-zone svg { width: 45px; height: 45px; fill: var(--primary); margin-bottom: 10px; }
-    .drop-zone p { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 5px; }
-    .drop-zone span { font-size: 13px; color: var(--text-muted); font-weight: 500; }
-    #imageInput { display: none; }
-
-    /* Preview Area */
-    .preview-container {
-      display: none; text-align: center; margin-bottom: 20px;
-    }
-    .preview-container img {
-      max-width: 100%; max-height: 250px; border-radius: 12px;
-      border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      animation: popIn 0.3s ease; object-fit: contain;
-    }
-    .file-info { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 10px; }
-
-    /* Buttons */
-    .btn {
-      width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 15px;
-      font-weight: 800; cursor: pointer; transition: 0.2s; color: #fff;
-      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
-    }
-    .btn:active:not(:disabled) { transform: scale(0.98); }
-    .btn:disabled { background: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
-    .btn-primary { background: var(--primary); }
-    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn-success { background: var(--success); }
-    .btn-success:hover:not(:disabled) { background: #059669; }
-    .btn-danger { background: transparent; border: 2px solid var(--border-color); color: var(--text-main); }
-    .btn-danger:hover { border-color: var(--danger); color: var(--danger); }
-
-    .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-    .btn-group .btn { margin-top: 0; flex: 1; }
-
-    /* Footer */
-    .footer { margin-top: 25px; text-align: center; font-size: 14px; color: var(--text-muted); font-weight: 600; }
-    .footer span { color: var(--primary); font-weight: 800; }
-
-    @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Metadata (EXIF) Remover</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex items-center justify-center p-4">
 
-  <div class="generator-card">
-    
-    <!-- Header -->
-    <div class="header">
-      <div>
-        <h1>EXIF Stripper Pro 🛡️</h1>
-        <p>Remove location & hidden metadata.</p>
-      </div>
-      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()" title="Settings">
-        <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-      </button>
-
-      <div class="settings-dropdown" id="settingsMenu">
-        <div class="setting-item">
-          <span>Dark Mode</span>
-          <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"><span class="slider"></span></label>
+    <div class="max-w-2xl w-full bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700">
+        <div class="text-center mb-6">
+            <h2 class="text-3xl font-bold text-green-500 mb-2">🛡️ Image EXIF Stripper</h2>
+            <p class="text-sm text-gray-400">ছবির ভেতরের লোকেশন এবং ডিভাইসের হিডেন মেটাডাটা এক ক্লিকে মুছে ফেলুন।</p>
         </div>
-      </div>
-    </div>
 
-    <!-- Drag & Drop Zone -->
-    <div class="drop-zone" id="dropZone" onclick="document.getElementById('imageInput').click()">
-      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-      <p>Drag & Drop Image here</p>
-      <span>or click to browse from device (JPG/PNG)</span>
-      <input type="file" id="imageInput" accept="image/jpeg, image/png, image/jpg">
-    </div>
+        <!-- Upload Area -->
+        <div class="mb-6">
+            <label class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-600 border-dashed rounded-xl cursor-pointer bg-gray-700 hover:bg-gray-600 transition-all">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="mb-2 text-sm text-gray-300"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p class="text-xs text-gray-400">PNG, JPG or JPEG (Max 10MB)</p>
+                </div>
+                <input id="imageInput" type="file" accept="image/jpeg, image/png, image/jpg" class="hidden" onchange="handleFile(event)" />
+            </label>
+        </div>
 
-    <!-- Preview Area -->
-    <div class="preview-container" id="previewContainer">
-      <img id="imagePreview" src="" alt="Preview">
-      <div class="file-info" id="fileInfo"></div>
-    </div>
+        <!-- Preview Area -->
+        <div id="previewContainer" class="hidden mb-6 flex flex-col items-center">
+            <p class="text-sm text-gray-300 mb-2">প্রিভিউ:</p>
+            <img id="imagePreview" class="max-w-full h-48 object-contain rounded-lg border border-gray-600 shadow-md" src="" alt="Preview">
+            <p id="fileInfo" class="text-xs text-gray-400 mt-2"></p>
+        </div>
 
-    <!-- Hidden Canvas -->
-    <canvas id="canvas" style="display: none;"></canvas>
+        <!-- Canvas for stripping (Hidden) -->
+        <canvas id="canvas" class="hidden"></canvas>
 
-    <!-- Actions -->
-    <button onclick="stripMetadata()" class="btn btn-primary" id="processBtn" disabled>
-      🧹 Remove EXIF Metadata
-    </button>
-    
-    <div class="btn-group" id="resultBtns" style="display: none;">
-      <button onclick="downloadImage()" class="btn btn-success">
-        📥 Download Clean Image
-      </button>
-      <button onclick="resetApp()" class="btn btn-danger">
-        🔄 Reset
-      </button>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">Developed by <span>Developer Shuvo</span></div>
-  </div>
-
-  <script>
-    // Theme Setup
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      if (savedTheme === 'dark') document.getElementById('themeToggle').checked = true;
-    });
-
-    function toggleSettings() { document.getElementById('settingsMenu').classList.toggle('active'); }
-    
-    document.addEventListener('click', function(event) {
-      const menu = document.getElementById('settingsMenu');
-      const btn = document.getElementById('settingsBtn');
-      if (!menu.contains(event.target) && !btn.contains(event.target)) {
-        menu.classList.remove('active');
-      }
-    });
-
-    function toggleTheme() {
-      const isDark = document.getElementById('themeToggle').checked;
-      const newTheme = isDark ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-    }
-
-    // Dynamic File Name Generator
-    function getNextFileName() {
-      let count = parseInt(localStorage.getItem('exif_shuvo_counter') || '0');
-      count += 1;
-      localStorage.setItem('exif_shuvo_counter', count);
-      let paddedCount = String(count).padStart(3, '0');
-      return `cleaned_img_dev_shuvo_${paddedCount}.jpg`;
-    }
-
-    // Logic
-    let originalImage = new Image();
-    let cleanedDataUrl = "";
-    
-    const dropZone = document.getElementById('dropZone');
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const imagePreview = document.getElementById('imagePreview');
-    const fileInfo = document.getElementById('fileInfo');
-    const processBtn = document.getElementById('processBtn');
-    const resultBtns = document.getElementById('resultBtns');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-
-    // Drag & Drop Handling
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        imageInput.files = e.dataTransfer.files;
-        handleFileSelection(e.dataTransfer.files[0]);
-      }
-    });
-
-    imageInput.addEventListener('change', (e) => {
-      if (e.target.files.length) handleFileSelection(e.target.files[0]);
-    });
-
-    function handleFileSelection(file) {
-      if (!file.type.startsWith('image/')) {
-        showToast('Please select a valid image file!', '#ef4444');
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        originalImage.src = e.target.result;
-        imagePreview.src = e.target.result;
+        <!-- Actions -->
+        <div class="flex gap-4">
+            <button id="processBtn" onclick="stripMetadata()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                🧹 Remove Metadata
+            </button>
+            <button id="downloadBtn" onclick="downloadImage()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hidden">
+                ⬇️ Download Clean Image
+            </button>
+        </div>
         
-        dropZone.style.display = 'none';
-        previewContainer.style.display = 'block';
-        processBtn.disabled = false;
-        
-        const sizeKB = (file.size / 1024).toFixed(2);
-        fileInfo.innerText = `File Size: ${sizeKB} KB`;
-      };
-      reader.readAsDataURL(file);
-    }
+        <!-- Status Message -->
+        <p id="statusMsg" class="text-center text-sm font-semibold mt-4 hidden"></p>
+    </div>
 
-    function stripMetadata() {
-      if (!originalImage.src) return;
+    <script>
+        let originalImage = new Image();
+        let cleanedDataUrl = "";
+        let originalFileName = "";
 
-      processBtn.disabled = true;
-      processBtn.innerHTML = "⚙️ Processing...";
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-      setTimeout(() => {
-        try {
-          canvas.width = originalImage.width;
-          canvas.height = originalImage.height;
-          ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-          
-          // Exporting as JPEG via canvas drops all EXIF data
-          cleanedDataUrl = canvas.toDataURL('image/jpeg', 1.0);
-          
-          processBtn.style.display = 'none';
-          resultBtns.style.display = 'flex';
-          
-          showToast('Metadata successfully stripped! 🛡️', '#10b981');
-        } catch (error) {
-          showToast('Failed to strip metadata!', '#ef4444');
-          processBtn.disabled = false;
-          processBtn.innerHTML = "🧹 Remove EXIF Metadata";
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            originalFileName = file.name;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                originalImage.src = e.target.result;
+                imagePreview.src = e.target.result;
+                
+                // Show preview and enable process button
+                previewContainer.classList.remove('hidden');
+                processBtn.disabled = false;
+                downloadBtn.classList.add('hidden');
+                
+                // Reset status
+                statusMsg.classList.add('hidden');
+                
+                const sizeKB = (file.size / 1024).toFixed(2);
+                fileInfo.innerText = `File: ${originalFileName} (${sizeKB} KB)`;
+            };
+
+            reader.readAsDataURL(file);
         }
-      }, 300); // UI Effect
-    }
 
-    function downloadImage() {
-      if (!cleanedDataUrl) return;
+        function stripMetadata() {
+            if (!originalImage.src) return;
 
-      const link = document.createElement('a');
-      link.download = getNextFileName();
-      link.href = cleanedDataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showToast('Download Started! 📥', '#2563eb');
-    }
+            try {
+                // Set canvas size to original image size
+                canvas.width = originalImage.width;
+                canvas.height = originalImage.height;
 
-    function resetApp() {
-      originalImage.src = '';
-      imagePreview.src = '';
-      cleanedDataUrl = '';
-      imageInput.value = '';
-      
-      previewContainer.style.display = 'none';
-      resultBtns.style.display = 'none';
-      dropZone.style.display = 'block';
-      
-      processBtn.style.display = 'flex';
-      processBtn.disabled = true;
-      processBtn.innerHTML = "🧹 Remove EXIF Metadata";
-      
-      showToast('Workspace Reset', '#475569');
-    }
+                // Draw image on canvas (This action drops EXIF data)
+                ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
 
-    function showToast(message, color) {
-      Toastify({
-        text: message,
-        duration: 3000,
-        gravity: "top",
-        position: "center",
-        style: {
-          background: color,
-          borderRadius: "8px",
-          fontWeight: "bold"
+                // Convert canvas back to image data
+                // Using JPEG with 1.0 quality to maintain visual fidelity
+                cleanedDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+
+                // Update UI
+                statusMsg.innerText = "✅ মেটাডাটা সফলভাবে মুছে ফেলা হয়েছে!";
+                statusMsg.className = "text-center text-sm font-semibold mt-4 text-green-400";
+                statusMsg.classList.remove('hidden');
+                
+                processBtn.classList.add('hidden');
+                downloadBtn.classList.remove('hidden');
+
+            } catch (error) {
+                statusMsg.innerText = "❌ মেটাডাটা মুছতে সমস্যা হয়েছে!";
+                statusMsg.className = "text-center text-sm font-semibold mt-4 text-red-400";
+                statusMsg.classList.remove('hidden');
+            }
         }
-      }).showToast();
-    }
-  </script>
+
+        function downloadImage() {
+            if (!cleanedDataUrl) return;
+
+            const link = document.createElement('a');
+            // Add prefix to filename
+            link.download = "Cleaned_" + originalFileName;
+            link.href = cleanedDataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
 </body>
 </html>
